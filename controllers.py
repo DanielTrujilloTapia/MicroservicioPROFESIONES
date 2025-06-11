@@ -101,15 +101,19 @@ def asignar_profesion_persona():
     persona_id = data.get('persona_id')
     profesion_id = data.get('profesion_id')
     fecha_asignacion = data.get('fecha_asignacion')
+    estatus_id = data.get('estatus_id')  # Nuevo campo
 
-    if not persona_id or not profesion_id or not fecha_asignacion:
-        return jsonify({"message": "Faltan datos: persona_id, profesion_id y fecha_asignacion son requeridos"}), 400
+    if not persona_id or not profesion_id or not fecha_asignacion or not estatus_id:
+        return jsonify({"message": "Faltan datos: persona_id, profesion_id, fecha_asignacion y estatus_id son requeridos"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        query = "INSERT INTO persona_profesion (persona_id, profesion_id, fecha_asignacion) VALUES (%s, %s, %s)"
-        cursor.execute(query, (persona_id, profesion_id, fecha_asignacion))
+        query = """
+            INSERT INTO persona_profesion (persona_id, profesion_id, fecha_asignacion, estatus_id)
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(query, (persona_id, profesion_id, fecha_asignacion, estatus_id))
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -119,6 +123,7 @@ def asignar_profesion_persona():
         conn.close()
 
     return jsonify({"message": "Asignación registrada correctamente"}), 201
+
 
 # Eliminar asignación profesión-persona
 def eliminar_profesion_persona():
