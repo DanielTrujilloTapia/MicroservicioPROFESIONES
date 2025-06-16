@@ -1,5 +1,5 @@
 from flask import Blueprint
-from controllers import asignar_profesion_persona, eliminar_profesion_persona
+from controllers import asignar_profesion_persona, eliminar_profesion_persona, obtener_personas_profesiones
 
 persona_profesion_bp = Blueprint('persona_profesion_bp', __name__)
 
@@ -12,3 +12,8 @@ def asignar_profesion():
 @persona_profesion_bp.route('/persona_profesion', methods=['DELETE'])
 def eliminar_asignacion():
     return eliminar_profesion_persona()
+
+# Eliminar asignación
+@persona_profesion_bp.route('/obtener_personas_profesion', methods=['GET'])
+def obtener_personas_profesion():
+    return obtener_personas_profesiones()

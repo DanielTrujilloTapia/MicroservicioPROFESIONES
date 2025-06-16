@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from db_config import get_db_connection
 import uuid
+import requests  # ✅ Solo porque lo usas en obtener_personas_profesiones
 
 #TABLA PROFESIONES
 
@@ -124,7 +125,6 @@ def asignar_profesion_persona():
 
     return jsonify({"message": "Asignación registrada correctamente"}), 201
 
-
 # Eliminar asignación profesión-persona
 def eliminar_profesion_persona():
     persona_id = request.args.get('persona_id')
@@ -146,47 +146,57 @@ def eliminar_profesion_persona():
     else:
         return jsonify({"message": "Asignación eliminada correctamente"}), 200
 
-
+# Obtener personas con su profesion
 def obtener_personas_profesiones():
-    # Consumir las APIs externas
-    try:
-        personas_response = requests.get("https://microservicioine.onrender.com/api/ine/personasAll")
-        profesiones_response = requests.get("http://127.0.0.1:5000/api/profesiones")
 
+    try:
+        # Llamadas a las APIs externas
+        personas_response = requests.get("https://microservicioine.onrender.com/api/ine/personasAll")
+        profesiones_response = requests.get("https://microservicioprofesiones.onrender.com/api/obtenerProfesiones")
+        estatus_response = requests.get("https://microservicio-estatus.onrender.com/estatus/obtenerTodos")
+
+        # Validación de respuestas
         personas_response.raise_for_status()
         profesiones_response.raise_for_status()
+        estatus_response.raise_for_status()
 
+        # Obtener los datos JSON
         personas = personas_response.json()
         profesiones = profesiones_response.json()
+        estatuses = estatus_response.json()
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Error al consumir las APIs externas: {str(e)}"}), 500
 
-    # Crear diccionarios para fácil búsqueda
-    personas_dict = {p["id"]: p for p in personas}
-    profesiones_dict = {p["id"]: p for p in profesiones}
+    # Diccionarios por ID para acceso rápido
+    personas_dict = {p["id_persona"]: p for p in personas}
+    profesiones_dict = {p["id_profesion"]: p for p in profesiones}
+    estatus_dict = {e["idStatus"]: e for e in estatuses}
 
     # Obtener relaciones desde la base de datos
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT persona_id, profesion_id, fecha_asignacion FROM persona_profesion")
+    cursor.execute("SELECT persona_id, profesion_id, fecha_asignacion, estatus_id FROM persona_profesion")
     relaciones = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    # Armar respuesta combinada
+    # Construir el resultado
     resultado = []
-    for r in relaciones:
-        persona = personas_dict.get(r[0])
-        profesion = profesiones_dict.get(r[1])
+    for persona_id, profesion_id, fecha_asignacion, estatus_id in relaciones:
+        persona = personas_dict.get(persona_id)
+        profesion = profesiones_dict.get(profesion_id)
+        estatus = estatus_dict.get(estatus_id)
 
-        if persona and profesion:
+        if persona and profesion and estatus:
             resultado.append({
-                "persona_id": r[0],
-                "persona_nombre": persona["nombre"],  # Ajusta según cómo venga desde la API
-                "profesion_id": r[1],
+                "persona_id": persona_id,
+                "persona_nombre": f"{persona['nombre']} {persona['apellido_paterno']} {persona['apellido_materno']}",
+                "profesion_id": profesion_id,
                 "profesion_nombre": profesion["nombre"],
-                "fecha_asignacion": str(r[2])
+                "fecha_asignacion": str(fecha_asignacion),
+                "estatus_id": estatus_id,
+                "estatus_nombre": estatus["nombre"]
             })
 
-    return jsonify(resultado)
+    return jsonify(resultado), 200
