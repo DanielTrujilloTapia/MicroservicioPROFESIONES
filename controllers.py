@@ -1,7 +1,6 @@
 from flask import jsonify, request
 from db_config import get_db_connection
 import uuid
-import requests  # ✅ Solo porque lo usas en obtener_personas_profesiones
 
 #TABLA PROFESIONES
 

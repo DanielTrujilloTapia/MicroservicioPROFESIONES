@@ -1,6 +1,5 @@
 from flask import Flask, jsonify
 from routes import profesiones_bp
-from persona_profesion_routes import persona_profesion_bp
 
 app = Flask(__name__)
 
