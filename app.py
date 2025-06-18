@@ -7,8 +7,6 @@ app = Flask(__name__)
 # Registrar las rutas con prefijo '/api'
 app.register_blueprint(profesiones_bp, url_prefix='/api')
 
-app.register_blueprint(persona_profesion_bp, url_prefix='/api')  # <- nueva línea
-
 # Ruta raíz
 @app.route('/')
 def home():
