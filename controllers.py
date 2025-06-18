@@ -151,7 +151,7 @@ def obtener_personas_profesiones():
 
     try:
         # Llamadas a las APIs externas
-        personas_response = requests.get("https://microservicioine.onrender.com/api/ine/personasAll")
+        personas_response = requests.get("https://microservicioine.onrender.com/api/ine/obtenerPersonas")
         profesiones_response = requests.get("https://microservicioprofesiones.onrender.com/api/obtenerProfesiones")
         estatus_response = requests.get("https://microservicio-estatus.onrender.com/estatus/obtenerTodos")
 
